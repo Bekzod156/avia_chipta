@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-10">
+    <h2 class="text-4xl font-extrabold text-gray-900">Mening bronlarim</h2>
+    <p class="text-gray-400 mt-2">Barcha bron qilingan chiptalaringiz</p>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="mb-5 px-4 py-3 rounded-2xl text-sm font-medium
+            {% if message.tags == 'error' %}bg-red-50 text-red-600 border border-red-200
+            {% else %}bg-green-50 text-green-600 border border-green-200{% endif %}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="space-y-5">
+    {% for ticket in tickets %}
+    <div class="glass border border-white rounded-[2rem] p-6 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div class="flex items-center gap-5">
+            <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-2xl">✈️</div>
+            <div>
+                <p class="text-xl font-bold text-gray-800">
+                    {{ ticket.flight.departure_airport.city }} → {{ ticket.flight.arrival_airport.city }}
+                </p>
+                <p class="text-gray-400 text-sm mt-1">
+                    {{ ticket.flight.departure_time|date:"d-F, Y • H:i" }}
+                </p>
+                <p class="text-gray-500 text-sm">
+                    O'rindiq: <span class="font-semibold text-gray-700">{{ ticket.seat_number }}</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="flex flex-col items-end gap-2">
+            <span class="text-2xl font-black text-gray-900">${{ ticket.flight.price }}</span>
+            <span class="px-3 py-1 rounded-xl text-sm font-semibold
+                {% if ticket.status == 'pending' %}bg-yellow-100 text-yellow-700
+                {% elif ticket.status == 'confirmed' %}bg-green-100 text-green-700
+                {% else %}bg-red-100 text-red-600{% endif %}">
+                {% if ticket.status == 'pending' %}⏳ Kutilmoqda
+                {% elif ticket.status == 'confirmed' %}✅ Tasdiqlangan
+                {% else %}❌ Bekor qilingan{% endif %}
+            </span>
+            <p class="text-gray-400 text-xs">{{ ticket.booking_date|date:"d.m.Y" }}</p>
+        </div>
+    </div>
+    {% empty %}
+    <div class="py-24 text-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100">
+        <div class="text-6xl mb-6">🎫</div>
+        <h3 class="text-2xl font-bold text-gray-800">Hali chipta bronlanmagan</h3>
+        <p class="text-gray-400 mt-2">Reyslar ro'yxatidan chipta band qiling</p>
+        <a href="{% url 'flight_list' %}" class="mt-8 inline-block bg-blue-600 text-white px-8 py-3 rounded-2xl font-bold hover:bg-blue-700 transition">
+            Reyslarni ko'rish
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

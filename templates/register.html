@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-[70vh] py-10">
+    <div class="glass border border-white rounded-[2.5rem] p-10 shadow-xl w-full max-w-lg">
+
+        <div class="text-center mb-8">
+            <span class="text-5xl">🛫</span>
+            <h2 class="text-3xl font-extrabold text-gray-900 mt-3">Ro'yxatdan o'tish</h2>
+            <p class="text-gray-400 mt-1">Yangi hisob yarating</p>
+        </div>
+
+        {% if form.non_field_errors %}
+            <div class="mb-4 px-4 py-3 rounded-2xl text-sm font-medium bg-red-50 text-red-600 border border-red-200">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'register' %}">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Ism</label>
+                    <input type="text" name="first_name" required
+                        class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                        placeholder="Sardor">
+                    {% if form.first_name.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.first_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Familiya</label>
+                    <input type="text" name="last_name" required
+                        class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                        placeholder="Aliyev">
+                    {% if form.last_name.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.last_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Elektron pochta</label>
+                    <input type="email" name="email" required
+                        class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                        placeholder="example@email.com">
+                    {% if form.email.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Pasport raqami</label>
+                    <input type="text" name="passport_number" required
+                        class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                        placeholder="AA1234567">
+                    {% if form.passport_number.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.passport_number.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Telefon raqami</label>
+                    <input type="text" name="phone_number" required
+                        class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                        placeholder="+998901234567">
+                    {% if form.phone_number.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.phone_number.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Parol</label>
+                    <input type="password" name="password1" required
+                        class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                        placeholder="••••••••">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Parolni tasdiqlang</label>
+                    <input type="password" name="password2" required
+                        class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                        placeholder="••••••••">
+                </div>
+            </div>
+
+            <button type="submit"
+                class="btn-animate action-btn w-full mt-6 bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-blue-700 transition shadow-lg">
+                Ro'yxatdan o'tish
+            </button>
+        </form>
+
+        <p class="text-center text-gray-400 text-sm mt-6">
+            Hisobingiz bormi?
+            <a href="{% url 'login' %}" class="text-blue-600 font-semibold hover:underline">Kirish</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
