@@ -28,7 +28,7 @@ class Flight(models.Model):
 
     # ✅ Bron qilingan chiptalardan avtomatik hisoblaydi
     def available_seats(self):
-        from backEnd.chipta.models import Ticket
+        from chipta.models import Ticket
         booked = Ticket.objects.filter(flight=self).exclude(status='cancelled').count()
         return self.total_seats - booked
     def __str__(self):

@@ -1,189 +1,170 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import render
+from django.http import JsonResponse
 from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from .models import Flight, Ticket, Passenger
-from .forms import RegisterForm, LoginForm, TicketForm
-import re
-from django.contrib import messages
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from .models import Flight, Ticket, Passenger
-from .forms import TicketForm
+from django.contrib.auth import authenticate, login, logout
+from .models import Flight, Airport, Passenger, Ticket
+from django.utils import timezone
+from decimal import Decimal
+import datetime
+import json
+from django.views.decorators.csrf import csrf_exempt
 
-@login_required(login_url='login')
-def book_ticket(request, flight_id):
-    flight = get_object_or_404(Flight, id=flight_id)
-    passenger = get_object_or_404(Passenger, user=request.user)
+# --- Flight & Booking APIs ---
 
-    if request.method == 'POST':
-        t_form = TicketForm(request.POST)
-        passport_input = request.POST.get('passport_check', '').strip().upper()
-
-        # Format tekshiruvi: 2 harf + 7 raqam
-        passport_pattern = re.compile(r'^[A-Z]{2}\d{7}$')
-
-        if not passport_pattern.match(passport_input):
-            messages.error(request, "❌ Xatolik yuz berdi! Pasport seriyasi noto'g'ri formatda (masalan: AD1234567)")
-            return render(request, 'book_ticket.html', {'flight': flight, 't_form': t_form})
-
-        if passport_input != passenger.passport_number.strip().upper():
-            messages.error(request, "❌ Xatolik yuz berdi! Pasport seriyasi sizning ma'lumotlaringizga mos kelmadi.")
-            return render(request, 'book_ticket.html', {'flight': flight, 't_form': TicketForm()})
-
-        if flight.available_seats <= 0:
-            messages.error(request, "❌ Kechirasiz, bu reysda bo'sh o'rindiqlar qolmagan!")
-            return render(request, 'book_ticket.html', {'flight': flight, 't_form': TicketForm()})
-
-        if t_form.is_valid():
-            ticket = t_form.save(commit=False)
-            ticket.flight = flight
-            ticket.passenger = passenger
-            ticket.status = 'pending'
-            ticket.save()
-
-            messages.success(request,
-                "✅ Chipta muvaffaqiyatli buyurtma berildi! "
-                "2 kun ichida bizning kassaga kelib pulni to'lashingiz mumkin."
-            )
-            return redirect('flight_list')
-
-        messages.error(request, "❌ Xatolik yuz berdi! Formani to'g'ri to'ldiring.")
-
-    else:
-        t_form = TicketForm()
-
-    return render(request, 'book_ticket.html', {
-        'flight': flight,
-        't_form': t_form
-    })
-
-
-# 1. Bosh sahifa
-def home(request):
-    return render(request, 'home.html')
-
-
-# 2. Ro'yxatdan o'tish
-def register_view(request):
-    if request.user.is_authenticated:
-        return redirect('home')
-
-    form = RegisterForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        data = form.cleaned_data
-        # User yaratish
-        user = User.objects.create_user(
-            username=data['email'],  # email = username
-            email=data['email'],
-            password=data['password1'],
-            first_name=data['first_name'],
-            last_name=data['last_name'],
-        )
-        # Passenger yaratish
-        Passenger.objects.create(
-            user=user,
-            passport_number=data['passport_number'],
-            phone_number=data['phone_number'],
-        )
-        login(request, user)
-        messages.success(request, "Muvaffaqiyatli ro'yxatdan o'tdingiz!")
-        return redirect('home')
-
-    return render(request, 'register.html', {'form': form})
-
-
-# 3. Login
-def login_view(request):
-    if request.user.is_authenticated:
-        return redirect('home')
-
-    form = LoginForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        data = form.cleaned_data
-        user = authenticate(request, username=data['email'], password=data['password'])
-        if user:
-            login(request, user)
-            messages.success(request, "Xush kelibsiz!")
-            return redirect('home')
-        else:
-            messages.error(request, "Email yoki parol noto'g'ri!")
-
-    return render(request, 'login.html', {'form': form})
-
-
-# 4. Logout
-def logout_view(request):
-    logout(request)
-    return redirect('login')
-
-
-# 5. Reyslar ro'yxati
-@login_required(login_url='login')
-def flight_list(request):
+def search_flights(request):
+    """ FrontEnd uchun reyslarni qidirish API """
+    from_city = request.GET.get('from', '')
+    to_city = request.GET.get('to', '')
+    
     flights = Flight.objects.all()
-    return render(request, 'flight_list.html', {'flights': flights})
+    
+    if from_city:
+        flights = flights.filter(departure_airport__city__icontains=from_city)
+    if to_city:
+        flights = flights.filter(arrival_airport__city__icontains=to_city)
+        
+    data = []
+    for flight in flights:
+        data.append({
+            'id': flight.id,
+            'flight_number': flight.flight_number,
+            'from_city': flight.departure_airport.city,
+            'from_code': flight.departure_airport.code,
+            'to_city': flight.arrival_airport.city,
+            'to_code': flight.arrival_airport.code,
+            'departure_time': flight.departure_time.strftime('%Y-%m-%d %H:%M'),
+            'price': float(flight.price),
+            'available_seats': flight.available_seats(),
+        })
+    
+    return JsonResponse(data, safe=False)
 
-
-# 6. Chipta bron qilish
-@login_required(login_url='login')
-def book_ticket(request, flight_id):
-    flight = get_object_or_404(Flight, id=flight_id)
-
-    try:
-        passenger = Passenger.objects.get(user=request.user)
-    except Passenger.DoesNotExist:
-        messages.error(request, "❌ Profilingiz topilmadi. Iltimos qayta ro'yxatdan o'ting.")
-        return redirect('register')
-
-    # ✅ available_seats ni view'da hisoblaymiz
-    available_seats = flight.available_seats()
-
+@csrf_exempt
+def book_flight(request):
+    """ Chipta bron qilish API """
     if request.method == 'POST':
-        t_form = TicketForm(request.POST)
-        passport_input = request.POST.get('passport_check', '').strip().upper()
-        passport_pattern = re.compile(r'^[A-Z]{2}\d{7}$')
+        try:
+            data = json.loads(request.body)
+            flight_id = data.get('flight_id')
+            passport = data.get('passport_number')
+            phone = data.get('phone_number')
+            seat = data.get('seat_number')
+            user_id = data.get('user_id') # Agar tizimga kirgan bo'lsa
 
-        if not passport_pattern.match(passport_input):
-            messages.error(request, "❌ Xatolik yuz berdi! Pasport seriyasi noto'g'ri formatda (masalan: AD1234567)")
-            return render(request, 'book_ticket.html',
-                          {'flight': flight, 't_form': t_form, 'available_seats': available_seats})
+            flight = Flight.objects.get(id=flight_id)
+            
+            # Yo'lovchini qidirish yoki yaratish
+            passenger, created = Passenger.objects.get_or_create(
+                passport_number=passport,
+                defaults={'phone_number': phone}
+            )
 
-        if passport_input != passenger.passport_number.strip().upper():
-            messages.error(request, "❌ Xatolik yuz berdi! Pasport seriyasi sizning ma'lumotlaringizga mos kelmadi.")
-            return render(request, 'book_ticket.html',
-                          {'flight': flight, 't_form': TicketForm(), 'available_seats': available_seats})
+            # Chipta yaratish
+            ticket = Ticket.objects.create(
+                flight=flight,
+                passenger=passenger,
+                seat_number=seat,
+                status='pending',
+                user_id=user_id if user_id else None
+            )
 
-        if available_seats <= 0:
-            messages.error(request, "❌ Kechirasiz, bu reysda bo'sh o'rindiqlar qolmagan!")
-            return render(request, 'book_ticket.html',
-                          {'flight': flight, 't_form': TicketForm(), 'available_seats': available_seats})
+            return JsonResponse({
+                'status': 'success',
+                'message': f'Chipta muvaffaqiyatli bron qilindi!',
+                'ticket_id': ticket.id
+            })
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)
 
-        if t_form.is_valid():
-            ticket = t_form.save(commit=False)
-            ticket.flight = flight
-            ticket.passenger = passenger
-            ticket.status = 'pending'
-            ticket.save()
-            messages.success(request,
-                             "✅ Chipta muvaffaqiyatli buyurtma berildi! "
-                             "2 kun ichida bizning kassaga kelib pulni to'lashingiz mumkin."
-                             )
-            return redirect('flight_list')
+def my_bookings(request):
+    """ Foydalanuvchining bron qilgan chiptalari API """
+    passport = request.GET.get('passport', '')
+    user_id = request.GET.get('user_id', '')
 
-        messages.error(request, "❌ Xatolik yuz berdi! Formani to'g'ri to'ldiring.")
-
+    if user_id:
+        tickets = Ticket.objects.filter(user_id=user_id)
+    elif passport:
+        tickets = Ticket.objects.filter(passenger__passport_number=passport)
     else:
-        t_form = TicketForm()
+        return JsonResponse({'status': 'error', 'message': 'Passport yoki User ID kerak'}, status=400)
+    
+    data = []
+    for ticket in tickets:
+        data.append({
+            'id': ticket.id,
+            'flight_number': ticket.flight.flight_number,
+            'from': ticket.flight.departure_airport.city,
+            'to': ticket.flight.arrival_airport.city,
+            'date': ticket.flight.departure_time.strftime('%Y-%m-%d %H:%M'),
+            'seat': ticket.seat_number,
+            'status': ticket.status,
+            'price': float(ticket.flight.price)
+        })
+    return JsonResponse(data, safe=False)
 
-    return render(request, 'book_ticket.html', {
-        'flight': flight,
-        't_form': t_form,
-        'available_seats': available_seats,  # ✅ template'ga uzatiladi
-    })
-@login_required(login_url='login')
-def ticket_list(request):
-    passenger = get_object_or_404(Passenger, user=request.user)
-    tickets = Ticket.objects.filter(passenger=passenger).order_by('-booking_date')
-    return render(request, 'ticket_list.html', {'tickets': tickets})
+# --- Auth APIs ---
+
+@csrf_exempt
+def register_user(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            first_name = data.get('first_name')
+            last_name = data.get('last_name')
+            email = data.get('email')
+            passport = data.get('passport_number')
+            phone = data.get('phone_number')
+            password = data.get('password')
+
+            if User.objects.filter(username=email).exists():
+                return JsonResponse({'status': 'error', 'message': 'Bu email allaqachon ro\'yxatdan o\'tgan!'}, status=400)
+
+            user = User.objects.create_user(username=email, email=email, password=password, first_name=first_name, last_name=last_name)
+            Passenger.objects.create(user=user, passport_number=passport, phone_number=phone)
+
+            return JsonResponse({'status': 'success', 'message': 'Ro\'yxatdan o\'tish muvaffaqiyatli yakunlandi!'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)
+
+@csrf_exempt
+def login_user(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            password = data.get('password')
+
+            user = authenticate(request, username=email, password=password)
+            if user is not None:
+                login(request, user)
+                passenger = Passenger.objects.get(user=user)
+                return JsonResponse({
+                    'status': 'success',
+                    'user': {
+                        'id': user.id,
+                        'first_name': user.first_name,
+                        'last_name': user.last_name,
+                        'email': user.email,
+                        'passport_number': passenger.passport_number,
+                        'phone_number': passenger.phone_number
+                    }
+                })
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Email yoki parol xato!'}, status=400)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)
+
+def seed_data(request):
+    """ Bazaga namunaviy ma'lumotlar qo'shish """
+    tas, _ = Airport.objects.get_or_create(code='TAS', defaults={'name': 'Tashkent International', 'city': 'Toshkent', 'country': 'Oʻzbekiston'})
+    ist, _ = Airport.objects.get_or_create(code='IST', defaults={'name': 'Istanbul Airport', 'city': 'Istanbul', 'country': 'Turkiya'})
+    dxb, _ = Airport.objects.get_or_create(code='DXB', defaults={'name': 'Dubai International', 'city': 'Dubay', 'country': 'BAA'})
+    
+    Flight.objects.get_or_create(flight_number='HY-271', defaults={'departure_airport': tas, 'arrival_airport': ist, 'departure_time': timezone.now() + datetime.timedelta(days=2), 'arrival_time': timezone.now() + datetime.timedelta(days=2, hours=4), 'price': Decimal('3500000.00')})
+    Flight.objects.get_or_create(flight_number='EK-701', defaults={'departure_airport': tas, 'arrival_airport': dxb, 'departure_time': timezone.now() + datetime.timedelta(days=3), 'arrival_time': timezone.now() + datetime.timedelta(days=3, hours=3), 'price': Decimal('4200000.00')})
+    
+    return JsonResponse({'status': 'success', 'message': 'Ma\'lumotlar yangilandi!'})
