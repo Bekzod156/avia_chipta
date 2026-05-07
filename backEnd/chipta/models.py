@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.auth.models import User
 
 
 class Airport(models.Model):
@@ -29,7 +28,7 @@ class Flight(models.Model):
 
     # ✅ Bron qilingan chiptalardan avtomatik hisoblaydi
     def available_seats(self):
-        from chipta.models import Ticket
+        from backEnd.chipta.models import Ticket
         booked = Ticket.objects.filter(flight=self).exclude(status='cancelled').count()
         return self.total_seats - booked
     def __str__(self):
@@ -80,8 +79,5 @@ class Ticket(models.Model):
     class Meta:
         verbose_name = "Chipta"
         verbose_name_plural = "Chiptalar"
-
-
-from django.db import models
 
 # Create your models here.

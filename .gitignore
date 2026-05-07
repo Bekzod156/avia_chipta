@@ -1,7 +1,7 @@
 .venv/
-venv/
-db.sqlite3
+backEnd/venv/
+backEnd/db.sqlite3
 __pycache__/
 *.pyc
 .idea/
-.env
+backEnd/.env
