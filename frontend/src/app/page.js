@@ -186,7 +186,7 @@ export default function Home() {
         <>
           <section className="relative z-10 max-w-7xl mx-auto px-8 pt-16 pb-24">
             <div className="text-center mb-16">
-              <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight">Osmonda ham <span className="text-blue-500">komfort</span> kuting</h1>
+              <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight">Sayohatlaringizni biz bilan <span className="text-blue-500">boshlang</span></h1>
               <p className="text-gray-400 text-lg max-w-2xl mx-auto">Eng arzon va qulay avia-chiptalarni bir necha soniya ichida band qiling.</p>
             </div>
 
