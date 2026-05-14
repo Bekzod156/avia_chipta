@@ -160,13 +160,33 @@ def login_user(request):
 
 def seed_data(request):
     """ Bazaga namunaviy ma'lumotlar qo'shish """
+    # Aeroportlar
     tas, _ = Airport.objects.get_or_create(code='TAS', defaults={'name': 'Tashkent International', 'city': 'Toshkent', 'country': 'Oʻzbekiston'})
     ist, _ = Airport.objects.get_or_create(code='IST', defaults={'name': 'Istanbul Airport', 'city': 'Istanbul', 'country': 'Turkiya'})
     dxb, _ = Airport.objects.get_or_create(code='DXB', defaults={'name': 'Dubai International', 'city': 'Dubay', 'country': 'BAA'})
+    nvi, _ = Airport.objects.get_or_create(code='NVI', defaults={'name': 'Navoiy Airport', 'city': 'Navoiy', 'country': 'Oʻzbekiston'})
+    jiz, _ = Airport.objects.get_or_create(code='JIZ', defaults={'name': 'Jizzax Airport', 'city': 'Jizzax', 'country': 'Oʻzbekiston'})
+    ugc, _ = Airport.objects.get_or_create(code='UGC', defaults={'name': 'Urganch Airport', 'city': 'Urganch', 'country': 'Oʻzbekiston'})
+    azn, _ = Airport.objects.get_or_create(code='AZN', defaults={'name': 'Andijon Airport', 'city': 'Andijon', 'country': 'Oʻzbekiston'})
+    mow, _ = Airport.objects.get_or_create(code='MOW', defaults={'name': 'Moscow Airport', 'city': 'Rossiya', 'country': 'Rossiya'})
+    jfk, _ = Airport.objects.get_or_create(code='JFK', defaults={'name': 'New York Airport', 'city': 'AQSH', 'country': 'AQSH'})
     
+    # Reyslar
     Flight.objects.get_or_create(flight_number='HY-271', defaults={'departure_airport': tas, 'arrival_airport': ist, 'departure_time': timezone.now() + datetime.timedelta(days=2), 'arrival_time': timezone.now() + datetime.timedelta(days=2, hours=4), 'price': Decimal('3500000.00')})
     Flight.objects.get_or_create(flight_number='EK-701', defaults={'departure_airport': tas, 'arrival_airport': dxb, 'departure_time': timezone.now() + datetime.timedelta(days=3), 'arrival_time': timezone.now() + datetime.timedelta(days=3, hours=3), 'price': Decimal('4200000.00')})
     
+    # Navoiy - Jizzax
+    Flight.objects.get_or_create(flight_number='NV-101', defaults={'departure_airport': nvi, 'arrival_airport': jiz, 'departure_time': timezone.now() + datetime.timedelta(days=1), 'arrival_time': timezone.now() + datetime.timedelta(days=1, hours=1), 'price': Decimal('1650000.00')})
+    Flight.objects.get_or_create(flight_number='JZ-102', defaults={'departure_airport': jiz, 'arrival_airport': nvi, 'departure_time': timezone.now() + datetime.timedelta(days=1, hours=4), 'arrival_time': timezone.now() + datetime.timedelta(days=1, hours=5), 'price': Decimal('1750000.00')})
+    
+    # Urganch - Andijon
+    Flight.objects.get_or_create(flight_number='UR-201', defaults={'departure_airport': ugc, 'arrival_airport': azn, 'departure_time': timezone.now() + datetime.timedelta(days=2), 'arrival_time': timezone.now() + datetime.timedelta(days=2, hours=2), 'price': Decimal('1850000.00')})
+    Flight.objects.get_or_create(flight_number='AN-202', defaults={'departure_airport': azn, 'arrival_airport': ugc, 'departure_time': timezone.now() + datetime.timedelta(days=2, hours=5), 'arrival_time': timezone.now() + datetime.timedelta(days=2, hours=7), 'price': Decimal('1950000.00')})
+    
+    # Rossiya - AQSH
+    Flight.objects.get_or_create(flight_number='RU-301', defaults={'departure_airport': mow, 'arrival_airport': jfk, 'departure_time': timezone.now() + datetime.timedelta(days=4), 'arrival_time': timezone.now() + datetime.timedelta(days=4, hours=12), 'price': Decimal('2450000.00')})
+    Flight.objects.get_or_create(flight_number='US-302', defaults={'departure_airport': jfk, 'arrival_airport': mow, 'departure_time': timezone.now() + datetime.timedelta(days=5), 'arrival_time': timezone.now() + datetime.timedelta(days=5, hours=11), 'price': Decimal('2350000.00')})
+
     return JsonResponse({'status': 'success', 'message': 'Ma\'lumotlar yangilandi!'})
 def create_admin(request):
     if not User.objects.filter(username='admin').exists():
