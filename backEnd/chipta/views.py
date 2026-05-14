@@ -168,3 +168,9 @@ def seed_data(request):
     Flight.objects.get_or_create(flight_number='EK-701', defaults={'departure_airport': tas, 'arrival_airport': dxb, 'departure_time': timezone.now() + datetime.timedelta(days=3), 'arrival_time': timezone.now() + datetime.timedelta(days=3, hours=3), 'price': Decimal('4200000.00')})
     
     return JsonResponse({'status': 'success', 'message': 'Ma\'lumotlar yangilandi!'})
+def create_admin(request):
+    if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
+        return JsonResponse({'status': 'success', 'message': 'Admin yaratildi! Login: admin, Parol: admin123'})
+    return JsonResponse({'status': 'error', 'message': 'Admin allaqachon mavjud!'})
+

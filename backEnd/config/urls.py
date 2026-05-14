@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path
-from chipta.views import search_flights, seed_data, book_flight, my_bookings, register_user, login_user
+from chipta.views import search_flights, seed_data, book_flight, my_bookings, register_user, login_user, create_admin
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -10,4 +10,5 @@ urlpatterns = [
     path('api/register/', register_user, name='register_user'),
     path('api/login/', login_user, name='login_user'),
     path('api/seed/', seed_data, name='seed_data'),
+    path('api/create-admin/', create_admin, name='create_admin'),
 ]
