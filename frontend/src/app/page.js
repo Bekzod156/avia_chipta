@@ -285,6 +285,53 @@ export default function Home() {
               <input type="password" placeholder="Parol" required className="w-full bg-white/5 border border-white/10 px-6 py-4 rounded-3xl text-white" value={loginData.password} onChange={(e) => setLoginData({...loginData, password: e.target.value})} />
               <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-3xl shadow-xl active:scale-95">KIRISH</button>
             </form>
+            <div className="mt-6 text-center text-sm">
+              <span className="text-gray-400">Akkauntingiz yo'qmi? </span>
+              <button onClick={() => { setShowLoginModal(false); setShowRegisterModal(true); }} className="text-blue-500 font-bold hover:underline">Ro'yxatdan o'tish</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showRegisterModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowRegisterModal(false)}></div>
+          <div className="relative z-10 bg-[#1e293b] border border-white/10 w-full max-w-md rounded-[40px] p-10 shadow-2xl">
+            <h2 className="text-3xl font-bold mb-8 text-center">Ro'yxatdan o'tish</h2>
+            <form onSubmit={handleRegister} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <input type="text" placeholder="Ism" required className="bg-white/5 border border-white/10 px-4 py-3 rounded-2xl text-white" value={registerData.first_name} onChange={(e) => setRegisterData({...registerData, first_name: e.target.value})} />
+                <input type="text" placeholder="Familiya" required className="bg-white/5 border border-white/10 px-4 py-3 rounded-2xl text-white" value={registerData.last_name} onChange={(e) => setRegisterData({...registerData, last_name: e.target.value})} />
+              </div>
+              <input type="email" placeholder="Email" required className="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-2xl text-white" value={registerData.email} onChange={(e) => setRegisterData({...registerData, email: e.target.value})} />
+              <input type="text" placeholder="Pasport (masalan: AA1234567)" required className="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-2xl text-white" value={registerData.passport_number} onChange={(e) => setRegisterData({...registerData, passport_number: e.target.value.toUpperCase()})} />
+              <input type="text" placeholder="Telefon" required className="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-2xl text-white" value={registerData.phone_number} onChange={(e) => setRegisterData({...registerData, phone_number: e.target.value})} />
+              <input type="password" placeholder="Parol" required className="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-2xl text-white" value={registerData.password} onChange={(e) => setRegisterData({...registerData, password: e.target.value})} />
+              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-3xl shadow-xl active:scale-95">RO'YXATDAN O'TISH</button>
+            </form>
+            <div className="mt-4 text-center text-sm">
+              <button onClick={() => { setShowRegisterModal(false); setShowLoginModal(true); }} className="text-gray-400 hover:text-white">Orqaga qaytish</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showBookingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowBookingModal(false)}></div>
+          <div className="relative z-10 bg-[#1e293b] border border-white/10 w-full max-w-md rounded-[40px] p-10 shadow-2xl">
+            <h2 className="text-2xl font-bold mb-4">Chipta bron qilish</h2>
+            <div className="bg-white/5 p-4 rounded-2xl mb-6 border border-white/10">
+              <p className="text-sm text-gray-400">Reys: <span className="text-white font-bold">{selectedFlight?.flight_number}</span></p>
+              <p className="text-sm text-gray-400">Yo'nalish: <span className="text-white font-bold">{selectedFlight?.from_city} ✈️ {selectedFlight?.to_city}</span></p>
+            </div>
+            <form onSubmit={submitBooking} className="space-y-4">
+              <input type="text" placeholder="Pasport raqami" required className="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-2xl text-white" value={bookingData.passport_number} onChange={(e) => setBookingData({...bookingData, passport_number: e.target.value.toUpperCase()})} />
+              <input type="text" placeholder="Telefon raqami" required className="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-2xl text-white" value={bookingData.phone_number} onChange={(e) => setBookingData({...bookingData, phone_number: e.target.value})} />
+              <input type="text" placeholder="O'rindiq (masalan: 12A)" required className="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-2xl text-white" value={bookingData.seat_number} onChange={(e) => setBookingData({...bookingData, seat_number: e.target.value.toUpperCase()})} />
+              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-3xl shadow-xl">BRON QILISH</button>
+            </form>
+            {status.message && <p className={`mt-4 text-center text-sm ${status.type === 'error' ? 'text-red-500' : 'text-green-500'}`}>{status.message}</p>}
           </div>
         </div>
       )}

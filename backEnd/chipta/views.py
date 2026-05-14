@@ -140,7 +140,7 @@ def login_user(request):
             user = authenticate(request, username=email, password=password)
             if user is not None:
                 login(request, user)
-                passenger = Passenger.objects.get(user=user)
+                passenger = Passenger.objects.filter(user=user).first()
                 return JsonResponse({
                     'status': 'success',
                     'user': {
@@ -148,8 +148,8 @@ def login_user(request):
                         'first_name': user.first_name,
                         'last_name': user.last_name,
                         'email': user.email,
-                        'passport_number': passenger.passport_number,
-                        'phone_number': passenger.phone_number
+                        'passport_number': passenger.passport_number if passenger else 'ADMIN',
+                        'phone_number': passenger.phone_number if passenger else 'ADMIN'
                     }
                 })
             else:
