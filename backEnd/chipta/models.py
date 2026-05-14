@@ -74,7 +74,8 @@ class Ticket(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holati")
 
     def __str__(self):
-        return f"Chipta #{self.id} - {self.flight.flight_number} - {self.passenger.last_name}"
+        name = self.passenger.user.last_name if self.passenger.user else "Noma'lum"
+        return f"Chipta #{self.id} - {self.flight.flight_number} - {name}"
 
     class Meta:
         verbose_name = "Chipta"

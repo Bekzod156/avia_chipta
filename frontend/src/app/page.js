@@ -85,7 +85,7 @@ export default function Home() {
         setStatus({ type: 'error', message: data.message });
       }
     } catch (err) {
-      setStatus({ type: 'error', message: 'Server xatosi' });
+      setStatus({ type: 'error', message: 'Ro\'yxatdan o\'tishda xato: server bilan bog\'lanib bo\'lmadi yoki ma\'lumotlar band' });
     }
   };
 
@@ -309,6 +309,7 @@ export default function Home() {
               <input type="password" placeholder="Parol" required className="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-2xl text-white" value={registerData.password} onChange={(e) => setRegisterData({...registerData, password: e.target.value})} />
               <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-3xl shadow-xl active:scale-95">RO'YXATDAN O'TISH</button>
             </form>
+            {status.message && <p className={`mt-4 text-center text-sm ${status.type === 'error' ? 'text-red-500' : 'text-green-500'}`}>{status.message}</p>}
             <div className="mt-4 text-center text-sm">
               <button onClick={() => { setShowRegisterModal(false); setShowLoginModal(true); }} className="text-gray-400 hover:text-white">Orqaga qaytish</button>
             </div>
