@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 
 // API manzili: Internetda backend manzilingiz, lokaldagida localhost
-const API_BASE_URL = "https://mening-backend-begi.azurewebsites.net";
+const API_BASE_URL = "https://avia-chipta-1.onrender.com";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('home');
